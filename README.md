@@ -10,9 +10,9 @@
 </p>
 
 
-
-## ✨ Why NexoIA SDK?
 ```
+## ✨ Why NexoIA SDK?
+
 | Pain | How NexoIA helps |
 |------|------------------|
 | **Different vendors, different SDKs** | Use **one** Pythonic interface for all. |
