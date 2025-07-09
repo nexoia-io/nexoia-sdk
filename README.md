@@ -100,7 +100,8 @@ pre-commit run --all-files
 ## 💬 Community
 
 - **Discord**: *coming soon*  
-- **X/Twitter**: [@nexoia_io](https://twitter.com/nexoia_io)  
+- **X/Twitter**: [@nexoia_io](https://twitter.com/nexoia_io)
+- **YouTube**: [@nexoia_io](https://www.youtube.com/@NexoIA-io)   
 - **GitHub Discussions**: start a topic if you’re stuck or have an idea.
 
 ---
