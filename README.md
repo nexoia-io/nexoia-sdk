@@ -93,7 +93,7 @@ git checkout -b feat/my-feature
 
 # Write tests (pytest) & run linters
 pre-commit run --all-files
-
+```
 ---
 
 ## 💬 Community
