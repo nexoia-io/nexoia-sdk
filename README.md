@@ -61,3 +61,36 @@ answer = client.chat("Summarise the last flight of Voyager 1 in two sentences.")
 print(answer.text)
 PY
 
+## 🔌 Add a new provider in 3 files
+
+1. **ai_models/mycoolapi.py** – subclass `BaseModel`, implement `.chat()` / `.complete()`.
+2. **nexoia/providers.yml** – register the provider (or use `entry_points`).
+3. **tests/test_mycoolapi.py** – add a minimal pytest ensuring the wrapper works.
+
+Submit a pull request—boom, the community benefits!
+
+---
+
+## 🛠️ Roadmap
+
+- WebAssembly runtime for in-browser inference  
+- TypeScript client  
+- Built-in cost tracker & billing reports  
+- CLI: `nexoia chat "hello world"`
+
+> Vote or propose new items on the **Issues** tab!
+
+---
+
+## 🤝 Contributing
+
+We love pull requests and new issues:
+
+```bash
+# Fork the repo & create your branch
+git checkout -b feat/my-feature
+
+# Write tests (pytest) & run linters
+pre-commit run --all-files
+
+
