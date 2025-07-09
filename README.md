@@ -21,7 +21,7 @@
 | **Need fast onboarding for teammates** | Consistent patterns & docs, zero cognitive overhead. |
 
 ```
-
+```text
 ## 📂 Package layout
 
 ai_models/
@@ -35,3 +35,29 @@ examples/
 tests/
 
 ```
+
+
+---
+
+## ⚡ Quick start
+
+```bash
+# 1. Install (editable mode while hacking)
+git clone https://github.com/nexoia-io/nexoia-sdk.git
+cd nexoia-sdk
+pip install -e .
+
+# 2. Set credentials (env vars or ~/.config/nexoia.yml)
+export OPENAI_API_KEY="sk-..."
+export DEEPSEEK_API_KEY="ds-..."
+
+# 3. Call any provider with the same API
+python - <<'PY'
+from nexoia import Client
+
+client = Client(default="openai:gpt-3.5-turbo")
+
+answer = client.chat("Summarise the last flight of Voyager 1 in two sentences.")
+print(answer.text)
+PY
+
