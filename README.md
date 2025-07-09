@@ -7,7 +7,7 @@
 <p align="center">
   Unifying multiple AI model APIs (OpenAI, DeepSeek & more) under one simple, pluggable interface.<br>
   <em>Open-source • Developer-first • Built for orchestration</em>
-  <strong>Founder by <a href="https://x.com/JonathanParra">Jonathan Parra</a></strong>
+  <strong>Founder by <a href="https://x.com/JonathanParra](https://www.linkedin.com/in/jonathan-parra-935b09133/)">Jonathan Parra</a></strong>
 </p>
 
 
