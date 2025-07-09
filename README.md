@@ -9,10 +9,10 @@
   <em>Open-source • Developer-first • Built for orchestration</em>
 </p>
 
-```
+
 
 ## ✨ Why NexoIA SDK?
-
+```
 | Pain | How NexoIA helps |
 |------|------------------|
 | **Different vendors, different SDKs** | Use **one** Pythonic interface for all. |
@@ -21,9 +21,9 @@
 | **Need fast onboarding for teammates** | Consistent patterns & docs, zero cognitive overhead. |
 
 ```
-```text
-## 📂 Package layout
 
+## 📂 Package layout
+```text
 ai_models/
 ├── base_model.py # Abstract base class every provider inherits
 ├── openia.py # OpenAI wrapper
