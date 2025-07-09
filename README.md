@@ -6,8 +6,8 @@
 <h1 align="center">NexoIA SDK 🚀</h1>
 <p align="center">
   Unifying multiple AI model APIs (OpenAI, DeepSeek & more) under one simple, pluggable interface.<br>
-  <strong>Created & maintained by <a href="https://x.com/JonathanParra">Jonathan Parra</a></strong>
   <em>Open-source • Developer-first • Built for orchestration</em>
+  <strong>Created & maintained by <a href="https://x.com/JonathanParra">Jonathan Parra</a></strong>
 </p>
 
 
