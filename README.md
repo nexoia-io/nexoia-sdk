@@ -10,7 +10,7 @@
 </p>
 
 
-```
+---
 ## ✨ Why NexoIA SDK?
 
 | Pain | How NexoIA helps |
@@ -20,7 +20,7 @@
 | **Vendor lock-in worries** | Swap providers on the fly; route by cost, latency or accuracy. |
 | **Need fast onboarding for teammates** | Consistent patterns & docs, zero cognitive overhead. |
 
-```
+---
 
 ## 📂 Package layout
 ```text
