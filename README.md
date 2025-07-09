@@ -94,4 +94,21 @@ git checkout -b feat/my-feature
 # Write tests (pytest) & run linters
 pre-commit run --all-files
 
+---
+
+## 💬 Community
+
+- **Discord**: *coming soon*  
+- **X/Twitter**: [@nexoia_io](https://twitter.com/nexoia_io)  
+- **GitHub Discussions**: start a topic if you’re stuck or have an idea.
+
+---
+
+## ⚖️ License
+
+Apache&nbsp;2.0 — free for personal & commercial use.  
+Copyright © 2025 **NexoIA**
+
+> *“AI for everyone, powered by everyone.”* ✨
+
 
