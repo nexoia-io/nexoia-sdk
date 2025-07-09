@@ -60,6 +60,7 @@ client = Client(default="openai:gpt-3.5-turbo")
 answer = client.chat("Summarise the last flight of Voyager 1 in two sentences.")
 print(answer.text)
 PY
+```
 
 ## 🔌 Add a new provider in 3 files
 
