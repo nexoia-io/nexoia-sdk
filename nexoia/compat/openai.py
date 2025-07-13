@@ -42,6 +42,5 @@ class _ChatCompletions:
 class _Chat:
     completions = _ChatCompletions()
 
-
 # Expose the public API expected by openai users
 chat = _Chat()

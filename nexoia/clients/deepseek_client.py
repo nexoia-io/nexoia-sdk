@@ -1,4 +1,3 @@
-
 # -----------------------------------------------------------------------------
 # nexoia/clients/deepseek_client.py
 # -----------------------------------------------------------------------------
@@ -60,4 +59,3 @@ class DeepSeekClient(BaseLLMClient):
             description="DeepSeek text‑generation model (simulated)",
             provider="deepseek",
         )
-

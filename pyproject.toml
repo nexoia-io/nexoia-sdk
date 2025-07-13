@@ -1,13 +1,74 @@
-from ia_models import OpenIA, DeepSeek
+# --------------------------- pyproject.toml ---------------------------
+[build-system]
+requires = ["setuptools>=69.0", "wheel"]
+build-backend = "setuptools.build_meta"
 
-#Inicialización de las clases con las credenciales correspondientes.
+[project]
+name = "nexoia-sdk"
+version = "0.1.0"
+description = "Unified Python SDK that patches the openai package and routes calls to multiple LLM providers."
+readme = "README.md"
+license = { file = "LICENSE" }     # Apache-2.0
+authors = [
+  { name = "Equipo NexoIA", email = "nexoia.info@gmail.com" }
+]
+requires-python = ">=3.9"
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+]
 
-openia = OpenIA(api_key="api_key")
-deepseek = DeepSeek(api_key="api_key")
+# Dependencias mínimas para que el paquete funcione.
+dependencies = [
+  "httpx>=0.27",
+  "pyyaml>=6.0",
+]
 
-#Ejemplo uso
-respuesta_openia = openia.generate_text("hola,¿como estas?")
-respuesta_deepseek = deepseek.generate_text("Hola, ¿que tal?")
+[project.optional-dependencies]
+# Usuarios que quieran usar el cliente oficial de OpenAI pueden instalar:
+openai = ["openai>=1.23"]
+# Extras de desarrollo y pruebas:
+dev = [
+  "ruff>=0.4",
+  "mypy>=1.10",
+  "pytest>=8.2",
+  "pytest-httpx>=0.30",
+  "coverage[toml]>=7.5",
+  "pytest-cov>=5.0"
+]
 
-print("OpenIA:", respuesta_openia)
-print("DeepSeek:", respuesta_deepseek)
+[project.urls]
+Homepage = "https://github.com/nexoia-io/nexoia-sdk"
+Documentation = "https://github.com/nexoia-io/nexoia-sdk/blob/main/README.md"
+Changelog = "https://github.com/nexoia-io/nexoia-sdk/blob/main/CHANGELOG.md"
+
+# ----------------------- setuptools-specific -------------------------
+[tool.setuptools]
+packages = ["nexoia", "nexoia.clients", "nexoia.compat"]
+
+[tool.setuptools.package-data]
+# Incluye el archivo de configuración de ejemplo y cualquier YAML de tests
+"nexoia" = ["py.typed", "examples/*.yaml"]
+
+# ------------------ herramientas de lint/type-check ------------------
+[tool.ruff]
+line-length = 100
+select = ["E", "F", "I"]          # errores, fallos, isort
+src = ["nexoia"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+plugins = []
+
+# --------------------------- coverage --------------------------------
+[tool.coverage.run]
+source = ["nexoia"]
+branch = true

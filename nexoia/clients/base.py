@@ -1,3 +1,6 @@
+# -----------------------------------------------------------------------------
+# nexoia/clients/base.py
+# -----------------------------------------------------------------------------
 """Base abstract client for Large Language Model providers.
 
 Every concrete provider (OpenAI, DeepSeek, etc.) must inherit from
@@ -6,7 +9,7 @@ Every concrete provider (OpenAI, DeepSeek, etc.) must inherit from
 
 This base class also handles common concerns such as:
 
-* API-key retrieval (from argument, environment variable or YAML config)
+* API‑key retrieval (from argument, environment variable or YAML config)
 * Default timeout configuration for HTTP requests
 * Basic representation helpers
 """
@@ -87,4 +90,3 @@ class BaseLLMClient(ABC):
         return (
             f"<{self.__class__.__name__} {meta.name} v{meta.version} timeout={self.timeout}s>"
         )
-
