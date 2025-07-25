@@ -408,3 +408,8 @@ venv/
 venv/*
 .venv/*
 .venv/
+
+# Build artefacts
+dist/
+build/
+*.egg-info/

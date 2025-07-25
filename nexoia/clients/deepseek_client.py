@@ -41,16 +41,33 @@ class DeepSeekClient(BaseLLMClient):
 
     # ------------------------------- LLM methods ----------------------------
 
-    def generate_text(self, prompt: str, *, max_tokens: int = 50, **kwargs: Any) -> str:  # type: ignore[override]
-        payload = {"prompt": prompt, "max_tokens": max_tokens, **kwargs}
-        url = f"{self.endpoint}/generate"
+    def generate_text(
+        self,
+        prompt: str,
+        *,
+        model: str = "deepseek-chat",
+        max_tokens: int = 50,
+        **kwargs: Any,
+    ) -> str:  # type: ignore[override]
+        payload = {
+            "model": model,
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": max_tokens,
+            **kwargs,
+        }
+        url = f"{self.endpoint}/chat/completions"
         response = self._client.post(url, json=payload)
 
         if response.status_code != 200:
-            raise APIError(provider="deepseek", status=response.status_code, body=response.text)
+            raise APIError(
+                provider="deepseek",
+                status=response.status_code,
+                body=response.text,
+            )
 
         data = response.json()
-        return data.get("generated_text", "")
+        # 🔸 NUEVO → ruta igual a OpenAI:
+        return data["choices"][0]["message"]["content"]
 
     def get_model_info(self) -> ModelInfo:  # type: ignore[override]
         return ModelInfo(

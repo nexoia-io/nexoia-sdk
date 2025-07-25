@@ -25,15 +25,25 @@
 
 ## 📂 Package layout
 ```text
-ai_models/
-├── base_model.py # Abstract base class every provider inherits
-├── openia.py # OpenAI wrapper
-├── deepseek.py # DeepSeek wrapper
-└── ... # Your next provider :)
 nexoia/
-└── client.py # High-level orchestration + routing logic
-examples/
+└── clients/ # High-level orchestration + routing logic
+    └── base.py # Abstract base class every provider inherits
+    └── deepseek_client.py # OpenAI wrapper
+    └── openai_client.py # DeepSeek wrapper
+└── compat/
+    └── openai.py
+└── config.py
+└── exceptions.py
+└── patcher.py
+└── registry.py
 tests/
+└── test_config.py
+└── test_deepseek_client.py
+└── test_exception.py
+└── test_openai_client.py
+└── test_patcher.py
+└── test_registry.py
+examples/
 
 ```
 
@@ -43,7 +53,7 @@ tests/
 ## ⚡ Quick start
 
 ```bash
-# 1. Install (editable mode while hacking)
+# 1. Install
 git clone https://github.com/nexoia-io/nexoia-sdk.git
 cd nexoia-sdk
 pip install -e .
@@ -65,7 +75,7 @@ PY
 
 ## 🔌 Add a new provider in 3 files
 
-1. **ai_models/mycoolapi.py** – subclass `BaseModel`, implement `.chat()` / `.complete()`.
+1. **clients/clients.py** – subclass `BaseModel`, implement `.chat()` / `.complete()`.
 2. **nexoia/providers.yml** – register the provider (or use `entry_points`).
 3. **tests/test_mycoolapi.py** – add a minimal pytest ensuring the wrapper works.
 
