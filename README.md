@@ -109,6 +109,7 @@ pre-commit run --all-files
 
 ## 💬 Community
 
+- **Page**: [@nexoia_io](https://nexoia.cl)
 - **Discord**: *coming soon*  
 - **X/Twitter**: [@nexoia_io](https://twitter.com/nexoia_io)
 - **YouTube**: [@nexoia_io](https://www.youtube.com/@NexoIA-io)   
