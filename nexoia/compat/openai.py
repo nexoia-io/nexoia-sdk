@@ -18,13 +18,13 @@ from typing import Any
 
 from ..registry import get_client
 from ..clients.openai_client import OpenAIClient  # ensure OpenAI is registered
-from ..clients.deepseek_client import DeepSeekClient
+
 
 # Register built‑in providers (users can register more before calling patch)
 from ..registry import register_client
 
 register_client("openai", OpenAIClient)
-register_client("deepseek", DeepSeekClient)
+
 
 
 class _ChatCompletions:
