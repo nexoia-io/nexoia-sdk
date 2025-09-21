@@ -32,6 +32,7 @@ nexoia/
     └── openai_client.py # DeepSeek wrapper
 └── compat/
     └── openai.py
+    └── deepseek.py
 └── config.py
 └── exceptions.py
 └── patcher.py
