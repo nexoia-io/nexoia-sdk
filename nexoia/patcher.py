@@ -1,7 +1,4 @@
-# -----------------------------------------------------------------------------
 # nexoia/patcher.py
-# -----------------------------------------------------------------------------
-"""Monkey-patch helper to alias ``openai`` to ``nexoia.compat``."""
 
 from __future__ import annotations
 
@@ -17,6 +14,17 @@ def patch_openai() -> ModuleType:  # pragma: no cover
     After calling this function, ``import openai`` anywhere in the same Python
     process will actually import NexoIA's compatibility shim.
     """
+
+    # Aseguramos que los proveedores built-in queden registrados
+    try:
+        importlib.import_module("nexoia.compat.deepseek")
+    except ModuleNotFoundError:
+        pass
+
+    try:
+        importlib.import_module("nexoia.compat.claude")
+    except ModuleNotFoundError:
+        pass
 
     compat = importlib.import_module("nexoia.compat.openai")
     sys.modules["openai"] = compat  # alias
