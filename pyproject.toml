@@ -34,6 +34,7 @@ dependencies = [
 [project.optional-dependencies]
 # Usuarios que quieran usar el cliente oficial de OpenAI pueden instalar:
 openai = ["openai>=1.23"]
+gemini = ["google-genai>=1.0.0"]
 # Extras de desarrollo y pruebas:
 dev = [
   "ruff>=0.4",
