@@ -30,9 +30,13 @@ nexoia/
     └── base.py # Abstract base class every provider inherits
     └── deepseek_client.py # OpenAI wrapper
     └── openai_client.py # DeepSeek wrapper
+    └── claude_client.py # Claude wrapper
+    └── gemini_client.py # Claude wrapper
 └── compat/
     └── openai.py
     └── deepseek.py
+    └── claude.py
+    └── gemini.py
 └── config.py
 └── exceptions.py
 └── patcher.py
@@ -106,6 +110,38 @@ git checkout -b feat/my-feature
 # Write tests (pytest) & run linters
 pre-commit run --all-files
 ```
+---
+
+## 🧪 Testing
+
+NexoIA includes an automated test suite designed to validate:
+
+- Correct integration of each provider (OpenAI, Claude, Gemini, etc.)
+- Compliance with the contract defined by `BaseLLMClient`
+- Proper behavior of the compatibility layer (`nexoia.compat.*`)
+- Correct request routing without performing real external API calls
+
+⚠️ **Tests do not perform real requests to external providers.**  
+All external dependencies are fully mocked to ensure:
+
+- Fast execution
+- Deterministic and reproducible results
+- No dependency on real credentials or network access
+
+---
+
+### Running the tests
+
+Install the project in editable mode with development dependencies:
+
+```bash
+pip install -e ".[dev]"
+```
+For a concise output:
+```bash
+pytest -q
+```
+
 ---
 
 ## 💬 Community
