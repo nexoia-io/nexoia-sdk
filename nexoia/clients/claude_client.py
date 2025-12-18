@@ -9,8 +9,8 @@ from typing import Any
 
 import httpx
 
-from .base import BaseLLMClient, ModelInfo
 from ..exceptions import APIError
+from .base import BaseLLMClient, ModelInfo
 
 _ANTHROPIC_DEFAULT_ENDPOINT = "https://api.anthropic.com"
 
@@ -18,7 +18,8 @@ _ANTHROPIC_DEFAULT_ENDPOINT = "https://api.anthropic.com"
 class ClaudeClient(BaseLLMClient):
     """Client para la API de Claude usando httpx."""
 
-    # Nombre estándar de la variable de entorno de Anthropic
+    # Provider slug should match config keys / registry keys (stable, vendor-level)
+    PROVIDER_SLUG = "anthropic"
     ENV_API_KEY = "ANTHROPIC_API_KEY"
 
     def __init__(
@@ -31,9 +32,7 @@ class ClaudeClient(BaseLLMClient):
         self.endpoint = endpoint.rstrip("/")
         super().__init__(api_key, timeout=timeout)
 
-    # ---------------------------- HTTP init ---------------------------------
     def _init_http(self) -> None:  # noqa: D401
-        # Cliente HTTP persistente
         self._client = httpx.Client(
             timeout=self.timeout,
             headers={
@@ -43,56 +42,76 @@ class ClaudeClient(BaseLLMClient):
             },
         )
 
-    # ----------------------------- LLM methods ------------------------------
+    def close(self) -> None:
+        if getattr(self, "_client", None) is not None:
+            self._client.close()
+
     def generate_text(
         self,
         prompt: str,
         *,
-        model: str = "claude-sonnet-4-5",
+        model: str = "claude-3-5-sonnet-20240620",
         max_tokens: int = 512,
         **kwargs: Any,
     ) -> str:  # type: ignore[override]
-        """Genera texto usando el endpoint /v1/messages de Anthropic."""
         payload: dict[str, Any] = {
             "model": model,
             "max_tokens": max_tokens,
-            "messages": [
-                {"role": "user", "content": prompt},
-            ],
+            "messages": [{"role": "user", "content": prompt}],
             **kwargs,
         }
 
         url = f"{self.endpoint}/v1/messages"
-        response = self._client.post(url, json=payload)
 
-        if response.status_code != 200:
+        try:
+            response = self._client.post(url, json=payload)
+            response.raise_for_status()
+            data = response.json()
+        except httpx.HTTPStatusError as exc:
+            # HTTP error with response body
             raise APIError(
-                provider="claude",
-                status=response.status_code,
-                body=response.text,
-            )
+                provider="anthropic",
+                status=exc.response.status_code,
+                body=exc.response.text,
+            ) from exc
+        except httpx.HTTPError as exc:
+            # Network / transport error (no status code)
+            raise APIError(
+                provider="anthropic",
+                status=0,
+                body=str(exc),
+            ) from exc
+        except ValueError as exc:
+            # JSON decode error
+            raise APIError(
+                provider="anthropic",
+                status=getattr(response, "status_code", 0),
+                body=getattr(response, "text", "")[:1000],
+            ) from exc
 
-        data = response.json()
+        return self._extract_text_from_response(data)
 
-        # Respuesta típica de Claude:
-        # {
-        #   "id": "...",
-        #   "type": "message",
-        #   "role": "assistant",
-        #   "content": [{"type": "text", "text": "..."}],
-        #   ...
-        # }
+    def _extract_text_from_response(self, data: dict[str, Any]) -> str:
+        """
+        Anthropic Messages API:
+          "content": [{"type":"text","text":"..."}, {"type":"tool_use",...}, ...]
+
+        We concatenate all text blocks and ignore non-text blocks for now.
+        """
         content = data.get("content", [])
-        if not content:
+        if not isinstance(content, list) or not content:
             return ""
 
-        # Tomamos el primer bloque de texto
-        first = content[0]
-        if isinstance(first, dict) and first.get("type") == "text":
-            return first.get("text", "")
+        texts: list[str] = []
+        for block in content:
+            if not isinstance(block, dict):
+                continue
+            if block.get("type") == "text":
+                t = block.get("text")
+                if isinstance(t, str) and t:
+                    texts.append(t)
 
-        # Fallback genérico
-        return str(first)
+        return "\n".join(texts).strip()
 
     def get_model_info(self) -> ModelInfo:  # type: ignore[override]
         return ModelInfo(

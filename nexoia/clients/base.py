@@ -19,7 +19,7 @@ from __future__ import annotations
 import os
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, Mapping
+from typing import Any
 
 from ..config import get_api_key
 
@@ -41,10 +41,24 @@ class BaseLLMClient(ABC):
     #: override this to match their own conventional variable name.
     ENV_API_KEY: str | None = None
 
+    def close(self) -> None:
+        """
+        Close underlying resources (no-op by default).
+        """
+        return None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        self.close()
+        return False
+
     def __init__(self, api_key: str | None = None, *, timeout: float | int = 10):
+        provider = getattr(self, "PROVIDER_SLUG", self.__class__.__name__.lower())
         self.api_key: str = (
             api_key
-            or get_api_key(self.__class__.__name__.lower())
+            or get_api_key(provider)
             or (os.getenv(self.ENV_API_KEY) if self.ENV_API_KEY else None)
         )
         if not self.api_key:
@@ -87,6 +101,4 @@ class BaseLLMClient(ABC):
 
     def __repr__(self) -> str:  # pragma: no cover
         meta = self.get_model_info()
-        return (
-            f"<{self.__class__.__name__} {meta.name} v{meta.version} timeout={self.timeout}s>"
-        )
+        return f"<{self.__class__.__name__} {meta.name} v{meta.version} timeout={self.timeout}s>"

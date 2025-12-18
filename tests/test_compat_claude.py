@@ -3,9 +3,9 @@
 
 from __future__ import annotations
 
-from typing import Any
 import sys
 import types
+from typing import Any
 
 import pytest
 
@@ -30,14 +30,11 @@ def _install_fake_openai_module() -> None:
                 completions=types.SimpleNamespace(
                     create=lambda **kw: types.SimpleNamespace(
                         choices=[
-                            types.SimpleNamespace(
-                                message=types.SimpleNamespace(content="pong")
-                            )
+                            types.SimpleNamespace(message=types.SimpleNamespace(content="pong"))
                         ]
                     )
                 )
             )
-
 
     fake_openai.OpenAI = _DummyOpenAI
     sys.modules["openai"] = fake_openai
@@ -58,8 +55,8 @@ def test_compat_claude_chat_completion(monkeypatch):
     monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
 
     # 3) Importamos compat.claude y el cliente concreto
-    from nexoia.compat import claude  # noqa: WPS433
     from nexoia.clients.claude_client import ClaudeClient
+    from nexoia.compat import claude
 
     # 4) Evitar que ClaudeClient.__init__ llame a BaseLLMClient.__init__
     #    (así no tocamos get_api_key ni la caché de config)

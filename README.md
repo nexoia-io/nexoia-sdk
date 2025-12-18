@@ -90,9 +90,9 @@ Submit a pull request—boom, the community benefits!
 
 ## 🛠️ Roadmap
 
-- WebAssembly runtime for in-browser inference  
-- TypeScript client  
-- Built-in cost tracker & billing reports  
+- WebAssembly runtime for in-browser inference
+- TypeScript client
+- Built-in cost tracker & billing reports
 - CLI: `nexoia chat "hello world"`
 
 > Vote or propose new items on the **Issues** tab!
@@ -111,7 +111,72 @@ git checkout -b feat/my-feature
 pre-commit run --all-files
 ```
 ---
+## 🔑 Provider Identification (`PROVIDER_SLUG`)
 
+Each LLM client in **NexoIA SDK** defines a stable provider identifier using the `PROVIDER_SLUG` attribute.
+
+### What is `PROVIDER_SLUG`?
+
+`PROVIDER_SLUG` is a **human-readable, stable identifier** for a provider (e.g. `openai`, `anthropic`, `gemini`).
+
+It is used to:
+- Resolve API keys from configuration files
+- Enable clean provider routing and registries
+- Decouple configuration from internal class names
+
+### Why not use the class name?
+
+Relying on `ClassName.lower()` (for example `geminiclient`) introduces several problems:
+- Configuration keys become unintuitive and error-prone
+- Renaming a class breaks existing configurations
+- Provider routing logic becomes brittle
+
+Using `PROVIDER_SLUG` avoids these issues entirely.
+
+### Example
+
+```python
+class GeminiClient(BaseLLMClient):
+    PROVIDER_SLUG = "gemini"
+    ENV_API_KEY = "GEMINI_API_KEY"
+```
+---
+## 🔌 Client Lifecycle and Resource Management (`close()`)
+
+Some providers (such as **DeepSeek** and **Anthropic**) use `httpx.Client` internally, which maintains open network connections.
+
+To prevent connection leaks in long-running processes, NexoIA defines a standard lifecycle API for all clients.
+
+---
+
+### `close()`
+
+All clients expose a `close()` method.
+
+- In `BaseLLMClient`, `close()` is a **no-op**
+- Clients that manage network or system resources **must override it**
+
+#### Example
+
+```python
+class DeepSeekClient(BaseLLMClient):
+    def close(self) -> None:
+        self._client.close()
+```
+### Context Manager Support
+
+All clients support usage as a context manager:
+
+```python
+with DeepSeekClient(api_key="...") as client:
+    text = client.generate_text("Hello", model="deepseek-chat")
+```
+When exiting the with block:
+
++ close() is automatically called
+
+Network connections are released safely
+---
 ## 🧪 Testing
 
 NexoIA includes an automated test suite designed to validate:
@@ -121,7 +186,7 @@ NexoIA includes an automated test suite designed to validate:
 - Proper behavior of the compatibility layer (`nexoia.compat.*`)
 - Correct request routing without performing real external API calls
 
-⚠️ **Tests do not perform real requests to external providers.**  
+⚠️ **Tests do not perform real requests to external providers.**
 All external dependencies are fully mocked to ensure:
 
 - Fast execution
@@ -147,18 +212,16 @@ pytest -q
 ## 💬 Community
 
 - **Page**: [@nexoia_io](https://nexoia.cl)
-- **Discord**: *coming soon*  
+- **Discord**: *coming soon*
 - **X/Twitter**: [@nexoia_io](https://twitter.com/nexoia_io)
-- **YouTube**: [@nexoia_io](https://www.youtube.com/@NexoIA-io)   
+- **YouTube**: [@nexoia_io](https://www.youtube.com/@NexoIA-io)
 - **GitHub Discussions**: start a topic if you’re stuck or have an idea.
 
 ---
 
 ## ⚖️ License
 
-Apache&nbsp;2.0 — free for personal & commercial use.  
+Apache&nbsp;2.0 — free for personal & commercial use.
 Copyright © 2025 **NexoIA**
 
 > *“AI for everyone, powered by everyone.”* ✨
-
-

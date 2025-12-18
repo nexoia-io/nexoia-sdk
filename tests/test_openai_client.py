@@ -36,7 +36,7 @@ def _patch_openai(monkeypatch):
 
 def test_openai_client_generate_text():
     # Import after the patch so it sees the fake SDK
-    from nexoia.clients.openai_client import OpenAIClient  # noqa: WPS433
+    from nexoia.clients.openai_client import OpenAIClient
 
     client = OpenAIClient(api_key="key")
     txt = client.generate_text("ping")

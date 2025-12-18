@@ -18,6 +18,7 @@ from .base import BaseLLMClient, ModelInfo
 class OpenAIClient(BaseLLMClient):
     """Thin wrapper delegating to :pypi:`openai` while matching BaseLLMClient."""
 
+    PROVIDER_SLUG = "openai"
     ENV_API_KEY = "OPENAI_API_KEY"
 
     def _init_http(self) -> None:  # noqa: D401
@@ -27,12 +28,12 @@ class OpenAIClient(BaseLLMClient):
     # ------------------------------- LLM methods ----------------------------
 
     def generate_text(self, prompt: str, *, model: str = "gpt-3.5-turbo", **kwargs: Any) -> str:  # type: ignore[override]
-        chat = self._client.chat.completions.create(
+        resp = self._client.chat.completions.create(
             model=model,
             messages=[{"role": "user", "content": prompt}],
             **kwargs,
         )
-        return chat.choices[0].message.content  # type: ignore[attr-defined]
+        return self._extract_text_from_response(resp)  # type: ignore[attr-defined]
 
     def get_model_info(self) -> ModelInfo:  # type: ignore[override]
         return ModelInfo(
@@ -41,3 +42,26 @@ class OpenAIClient(BaseLLMClient):
             description="OpenAI chat completions",
             provider="openai",
         )
+
+    def _extract_text_from_response(self, response) -> str:
+        try:
+            choices = getattr(response, "choices", None)
+            if not choices:
+                return ""
+
+            message = getattr(choices[0], "message", None)
+            if not message:
+                return ""
+
+            # Normal text
+            if message.content:
+                return message.content
+
+            # Tool calls (future-proof)
+            if hasattr(message, "tool_calls") and message.tool_calls:
+                return ""
+
+            return ""
+
+        except Exception:
+            return ""

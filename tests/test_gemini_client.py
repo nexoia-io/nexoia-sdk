@@ -1,5 +1,6 @@
 import types
 
+
 def test_gemini_generate_text_calls_generate_content(monkeypatch):
     from nexoia.clients.gemini_client import GeminiClient
 
@@ -21,6 +22,7 @@ def test_gemini_generate_text_calls_generate_content(monkeypatch):
             self.models = FakeModels()
 
     import nexoia.clients.gemini_client as gemini_client_module
+
     monkeypatch.setattr(
         gemini_client_module,
         "genai",
@@ -28,7 +30,13 @@ def test_gemini_generate_text_calls_generate_content(monkeypatch):
         raising=True,
     )
 
-    c = GeminiClient()
-    text = c.generate_text(prompt="Hola", model="gemini-2.5-flash", temperature=0.2)
+    # ✅ FIX: provide a dummy key to satisfy BaseLLMClient
+    c = GeminiClient(api_key="DUMMY_KEY")
 
-    assert text == "OK_FROM_GEMINI"
+    out = c.generate_text("hello", model="gemini-1.5-pro")
+
+    assert out == "OK_FROM_GEMINI"
+    assert c._client.api_key == "DUMMY_KEY"
+    assert c._client.models.calls == [
+        {"model": "gemini-1.5-pro", "contents": "hello", "kwargs": {}}
+    ]
