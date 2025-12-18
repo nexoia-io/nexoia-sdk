@@ -16,15 +16,12 @@ from __future__ import annotations
 from types import SimpleNamespace
 from typing import Any
 
-from ..registry import get_client
 from ..clients.openai_client import OpenAIClient  # ensure OpenAI is registered
 
-
 # Register built‑in providers (users can register more before calling patch)
-from ..registry import register_client
+from ..registry import get_client, register_client
 
 register_client("openai", OpenAIClient)
-
 
 
 class _ChatCompletions:
@@ -35,12 +32,19 @@ class _ChatCompletions:
         client = ClientCls()
         prompt = "\n".join(msg["content"] for msg in messages)
         return SimpleNamespace(
-            choices=[SimpleNamespace(message=SimpleNamespace(content=client.generate_text(prompt, model=mname, **kwargs)))],
+            choices=[
+                SimpleNamespace(
+                    message=SimpleNamespace(
+                        content=client.generate_text(prompt, model=mname, **kwargs)
+                    )
+                )
+            ],
         )
 
 
 class _Chat:
     completions = _ChatCompletions()
+
 
 # Expose the public API expected by openai users
 chat = _Chat()

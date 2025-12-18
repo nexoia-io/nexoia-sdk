@@ -11,7 +11,7 @@ def test_apierror_raised(monkeypatch):
 
     class _FakeClient:
         def __init__(self, *_, **__):
-            pass                       # acepta cualquier argumento
+            pass  # acepta cualquier argumento
 
         def post(self, *_, **__):
             return _FakeResp()

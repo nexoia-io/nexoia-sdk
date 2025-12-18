@@ -38,6 +38,7 @@ gemini = ["google-genai>=1.0.0"]
 # Extras de desarrollo y pruebas:
 dev = [
   "ruff>=0.4",
+  "pre-commit>=3.7",
   "mypy>=1.10",
   "pytest>=8.2",
   "pytest-httpx>=0.30",
@@ -61,8 +62,12 @@ packages = ["nexoia", "nexoia.clients", "nexoia.compat"]
 # ------------------ herramientas de lint/type-check ------------------
 [tool.ruff]
 line-length = 100
-select = ["E", "F", "I"]          # errores, fallos, isort
+target-version = "py310"
 src = ["nexoia"]
+fix = true
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
 
 [tool.mypy]
 python_version = "3.10"

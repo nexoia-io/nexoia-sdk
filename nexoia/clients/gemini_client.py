@@ -1,39 +1,42 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Any, Dict, Optional
+from typing import Any
 
 from google import genai
 
-from .base import BaseLLMClient
+from .base import BaseLLMClient, ModelInfo
 
 
-@dataclass
 class GeminiClient(BaseLLMClient):
-    provider: str = "gemini"
+    """
+    Google Gemini client using the official google-genai SDK.
+    """
 
-    def _client(self):
-        # Si tú manejas API keys centralizadas, reemplaza por tu helper.
-        # Si no, el SDK lee GEMINI_API_KEY desde env.
-        return genai.Client()
+    ENV_API_KEY = "GEMINI_API_KEY"
+    PROVIDER_SLUG = "gemini"
+
+    def _init_http(self) -> None:
+        # The SDK manages endpoints internally.
+        self._client = genai.Client(api_key=self.api_key)
 
     def generate_text(self, prompt: str, model: str, **kwargs: Any) -> str:
         """
-        Método requerido por BaseLLMClient.
+        Generate text using a Gemini model.
         """
-        client = self._client()
-        resp = client.models.generate_content(model=model, contents=prompt, **kwargs)
-        return getattr(resp, "text", "") or ""
+        response = self._client.models.generate_content(
+            model=model,
+            contents=prompt,
+            **kwargs,
+        )
+        return getattr(response, "text", "") or ""
 
-    def get_model_info(self, model: str) -> Dict[str, Any]:
+    def get_model_info(self) -> ModelInfo:
         """
-        Método requerido por BaseLLMClient.
-        Mantén esto declarativo (sin inventar números si no los tienes).
+        Declarative provider metadata.
         """
-        return {
-            "provider": self.provider,
-            "model": model,
-            "supports_text": True,
-            # Completa según tu esquema real de ModelInfo si existe
-            "notes": "Gemini model metadata not retrieved from API; declarative info only.",
-        }
+        return ModelInfo(
+            name="google-gemini",
+            version="v1",
+            description="Google Gemini text-generation models via official SDK",
+            provider="gemini",
+        )

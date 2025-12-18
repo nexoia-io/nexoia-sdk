@@ -1,13 +1,8 @@
 # tests/test_registry.py
 """Unit tests for nexoia.registry."""
 
-import importlib
-import types
-
-import pytest
-
-from nexoia.registry import register_client, get_client
 from nexoia.clients.base import BaseLLMClient
+from nexoia.registry import get_client, register_client
 
 
 class _Dummy(BaseLLMClient):

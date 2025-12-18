@@ -14,9 +14,7 @@ def _patch_httpx(monkeypatch):
         def json(self):
             # <-- aquí estaba el problema: faltaba la llave de cierre
             return {
-                "choices": [
-                    {"message": {"content": "Respuesta generada por DeepSeek para: hola"}}
-                ]
+                "choices": [{"message": {"content": "Respuesta generada por DeepSeek para: hola"}}]
             }
 
     class _FakeClient:

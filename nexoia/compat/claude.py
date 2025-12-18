@@ -6,7 +6,7 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
-from typing import Any, List, Dict
+from typing import Any
 
 from ..clients.claude_client import ClaudeClient
 from ..registry import register_client
@@ -15,24 +15,20 @@ from ..registry import register_client
 register_client("claude", ClaudeClient)
 
 
-def _ensure_messages(messages: Any) -> List[Dict[str, str]]:
+def _ensure_messages(messages: Any) -> list[dict[str, str]]:
     if not isinstance(messages, list):
         raise ValueError("`messages` debe ser lista de {'role','content'}.")
 
     for m in messages:
         if not isinstance(m, dict) or "role" not in m or "content" not in m:
-            raise ValueError(
-                "Cada mensaje debe ser dict {'role': str, 'content': str}."
-            )
+            raise ValueError("Cada mensaje debe ser dict {'role': str, 'content': str}.")
 
     return messages  # type: ignore[return-value]
 
 
-def _extract_prompt(messages: List[Dict[str, str]]) -> str:
+def _extract_prompt(messages: list[dict[str, str]]) -> str:
     # Igual que en compat.deepseek: concatenamos el contenido de los roles 'user'
-    return "\n".join(
-        m["content"] for m in messages if m.get("role") == "user"
-    ).strip()
+    return "\n".join(m["content"] for m in messages if m.get("role") == "user").strip()
 
 
 class _ChatCompletions:
@@ -42,13 +38,7 @@ class _ChatCompletions:
         prompt = _extract_prompt(msgs)
         client = ClaudeClient()
         text = client.generate_text(prompt, model=model, **kwargs)
-        return SimpleNamespace(
-            choices=[
-                SimpleNamespace(
-                    message=SimpleNamespace(content=text)
-                )
-            ]
-        )
+        return SimpleNamespace(choices=[SimpleNamespace(message=SimpleNamespace(content=text))])
 
 
 class _Chat:

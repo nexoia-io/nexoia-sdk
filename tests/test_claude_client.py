@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import httpx
 import pytest
-
 from nexoia.exceptions import APIError
 
 
@@ -18,11 +17,18 @@ def _patch_httpx(monkeypatch):
 
         def __init__(self, payload: dict | None = None, text: str = "ok"):
             self._payload = payload or {
-                "content": [
-                    {"type": "text", "text": "Respuesta Claude para: hola"}
-                ]
+                "content": [{"type": "text", "text": "Respuesta Claude para: hola"}]
             }
             self.text = text
+
+        def raise_for_status(self):
+            # Mimic httpx.Response.raise_for_status()
+            if self.status_code >= 400:
+                raise httpx.HTTPStatusError(
+                    "HTTP error",
+                    request=httpx.Request("POST", "https://api.anthropic.com/v1/messages"),
+                    response=self,
+                )
 
         def json(self):
             return self._payload
@@ -49,7 +55,6 @@ def test_claude_generate_text_basic():
     client = ClaudeClient(api_key="token")
     out = client.generate_text("hola", model="claude-sonnet-4-5", max_tokens=123)
 
-    # Devuelve el texto del primer bloque "text"
     assert isinstance(out, str)
     assert "claude" in out.lower() or "respuesta" in out.lower()
 
@@ -64,12 +69,16 @@ def test_claude_uses_messages_payload(monkeypatch):
         def __init__(self):
             self.text = "ok"
 
+        def raise_for_status(self):
+            if self.status_code >= 400:
+                raise httpx.HTTPStatusError(
+                    "HTTP error",
+                    request=httpx.Request("POST", "https://api.anthropic.com/v1/messages"),
+                    response=self,
+                )
+
         def json(self):
-            return {
-                "content": [
-                    {"type": "text", "text": "algo"}
-                ]
-            }
+            return {"content": [{"type": "text", "text": "algo"}]}
 
     class _FakeClient:
         def __init__(self, *_, **__):
@@ -91,7 +100,6 @@ def test_claude_uses_messages_payload(monkeypatch):
 
     assert out == "algo"
 
-    # URL correcta
     assert captured["url"].endswith("/v1/messages")
     body = captured["json"]
     assert body["model"] == "claude-sonnet-4-5"
@@ -106,6 +114,14 @@ def test_claude_raises_on_http_error(monkeypatch):
     class _FakeResp:
         status_code = 500
         text = "boom"
+
+        def raise_for_status(self):
+            # Simulate httpx raising on non-2xx status
+            raise httpx.HTTPStatusError(
+                "boom",
+                request=httpx.Request("POST", "https://api.anthropic.com/v1/messages"),
+                response=self,
+            )
 
         def json(self):
             return {}
