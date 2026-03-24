@@ -1,11 +1,56 @@
+# -----------------------------------------------------------------------------
 # nexoia/compat/gemini.py
-from ..clients.gemini_client import GeminiClient
-from ..registry import register_provider  # ajusta al nombre real
+# -----------------------------------------------------------------------------
+"""Surface tipo OpenAI, respaldada por GeminiClient."""
 
-register_provider(
-    name="gemini",
-    client_cls=GeminiClient,
-    # si tu registry guarda metadata:
-    env_key="GEMINI_API_KEY",
-    default_base_url=None,
-)
+from __future__ import annotations
+
+from types import SimpleNamespace
+from typing import Any
+
+from ..clients.gemini_client import GeminiClient
+from ..registry import register_client
+
+register_client("gemini", GeminiClient)
+
+
+def _ensure_messages(messages: Any) -> list[dict[str, str]]:
+    if not isinstance(messages, list):
+        raise ValueError("`messages` debe ser lista de {'role','content'}.")
+
+    for m in messages:
+        if not isinstance(m, dict) or "role" not in m or "content" not in m:
+            raise ValueError("Cada mensaje debe ser dict {'role': str, 'content': str}.")
+
+    return messages  # type: ignore[return-value]
+
+
+def _extract_prompt(messages: list[dict[str, str]]) -> str:
+    return "\n".join(
+        m["content"] for m in messages if m.get("role") == "user"
+    ).strip()
+
+
+class _ChatCompletions:
+    @staticmethod
+    def create(*, model: str, messages: Any, **kwargs: Any):
+        msgs = _ensure_messages(messages)
+        prompt = _extract_prompt(msgs)
+
+        client = GeminiClient()
+        text = client.generate_text(prompt, model=model, **kwargs)
+
+        return SimpleNamespace(
+            choices=[
+                SimpleNamespace(
+                    message=SimpleNamespace(content=text)
+                )
+            ]
+        )
+
+
+class _Chat:
+    completions = _ChatCompletions()
+
+
+chat = _Chat()

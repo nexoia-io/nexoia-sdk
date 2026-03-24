@@ -24,6 +24,10 @@ def patch_openai() -> ModuleType:  # pragma: no cover
         importlib.import_module("nexoia.compat.claude")
     except ModuleNotFoundError:
         pass
+    try:
+        importlib.import_module("nexoia.compat.gemini")
+    except ModuleNotFoundError:
+        pass
 
     compat = importlib.import_module("nexoia.compat.openai")
     sys.modules["openai"] = compat  # alias
