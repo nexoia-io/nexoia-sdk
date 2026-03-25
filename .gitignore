@@ -413,3 +413,7 @@ venv/*
 dist/
 build/
 *.egg-info/
+
+
+#file prueba
+prueba.py

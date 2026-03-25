@@ -19,7 +19,7 @@ class GeminiClient(BaseLLMClient):
         # The SDK manages endpoints internally.
         self._client = genai.Client(api_key=self.api_key)
 
-    def generate_text(self, prompt: str, model: str = "gemini-2.5-flash", **kwargs: Any) -> str:
+    def generate_text(self, prompt: str, *, model: str = "gemini-2.5-flash", **kwargs: Any) -> str:
         """
         Generate text using a Gemini model.
         """
