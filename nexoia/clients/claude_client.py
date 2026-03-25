@@ -50,7 +50,7 @@ class ClaudeClient(BaseLLMClient):
         self,
         prompt: str,
         *,
-        model: str = "claude-3-5-sonnet-20240620",
+        model: str = "claude-sonnet-4-6",
         max_tokens: int = 512,
         **kwargs: Any,
     ) -> str:  # type: ignore[override]
