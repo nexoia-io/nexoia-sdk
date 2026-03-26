@@ -5,6 +5,9 @@
 
 <h1 align="center">NexoIA SDK 🚀</h1>
 <p align="center">
+  A unified SDK for orchestrating multiple LLM providers with a consistent interface.
+</p>
+<p align="center">
   Unifying multiple AI model APIs (OpenAI, DeepSeek & more) under one simple, pluggable interface.<br>
   <em>Open-source • Developer-first • Built for orchestration</em>
   <strong>Founder by <a href="https://www.linkedin.com/in/jonathan-parra-935b09133/">Jonathan Parra</a></strong>
@@ -28,10 +31,10 @@
 nexoia/
 └── clients/ # High-level orchestration + routing logic
     └── base.py # Abstract base class every provider inherits
-    └── deepseek_client.py # OpenAI wrapper
-    └── openai_client.py # DeepSeek wrapper
+    └── deepseek_client.py # DeepSeek wrapper
+    └── openai_client.py # OpenAI wrapper 
     └── claude_client.py # Claude wrapper
-    └── gemini_client.py # Claude wrapper
+    └── gemini_client.py # Gemini wrapper
 └── compat/
     └── openai.py
     └── deepseek.py
@@ -41,13 +44,18 @@ nexoia/
 └── exceptions.py
 └── patcher.py
 └── registry.py
+└── types.py
 tests/
+└── test_claude_client.py
+└── test_compat_claude.py
 └── test_config.py
 └── test_deepseek_client.py
 └── test_exception.py
+└── test_gemini_client.py
 └── test_openai_client.py
 └── test_patcher.py
 └── test_registry.py
+└── test_types.py
 examples/
 
 ```
@@ -69,13 +77,34 @@ export DEEPSEEK_API_KEY="ds-..."
 
 # 3. Call any provider with the same API
 python - <<'PY'
-from nexoia import Client
+from nexoia.clients.openai_client import OpenAIClient
 
-client = Client(default="openai:gpt-3.5-turbo")
+client = OpenAIClient(api_key="...")
 
-answer = client.chat("Summarise the last flight of Voyager 1 in two sentences.")
-print(answer.text)
+resp = client.generate("Summarise the last flight of Voyager 1 in two sentences.")
+print(resp.text)
 PY
+```
+---
+
+## ✨ Unified Response Model (LLMResponse)
+
+NexoIA standardizes responses across all providers using a single interface.
+
+Instead of returning plain text, all clients now return a structured object:
+
+```python
+from nexoia.clients.openai_client import OpenAIClient
+
+client = OpenAIClient(api_key="...")
+
+resp = client.generate("Hello world", model="gpt-3.5-turbo")
+
+print(resp.text)        # Generated text
+print(resp.provider)    # openai, anthropic, gemini, deepseek
+print(resp.model)       # Model used
+print(resp.usage)       # Token usage (if available)
+print(resp.raw)         # Raw provider response
 ```
 
 ## 🔌 Add a new provider in 3 files
@@ -90,10 +119,43 @@ Submit a pull request—boom, the community benefits!
 
 ## 🛠️ Roadmap
 
-- WebAssembly runtime for in-browser inference
-- TypeScript client
-- Built-in cost tracker & billing reports
-- CLI: `nexoia chat "hello world"`
+### 🔹 Core Platform
+
+- [x] Unified response model (`LLMResponse`)
+- [ ] Streaming support across providers
+- [ ] Async client support
+- [ ] Standardized tool/function calling
+
+---
+
+### 🔹 Orchestration
+
+- [ ] Multi-provider routing (latency, cost, fallback)
+- [ ] Model selection strategies
+- [ ] Consensus / multi-model voting
+
+---
+
+### 🔹 Observability & Cost
+
+- [ ] Built-in cost tracker (based on `usage`)
+- [ ] Token usage analytics
+- [ ] Request tracing & logging
+
+---
+
+### 🔹 Developer Experience
+
+- [ ] CLI: `nexoia chat "hello world"`
+- [ ] TypeScript client
+- [ ] Improved config system (profiles, environments)
+
+---
+
+### 🔹 Runtime & Edge
+
+- [ ] WebAssembly runtime for in-browser inference
+- [ ] Edge-compatible execution
 
 > Vote or propose new items on the **Issues** tab!
 
