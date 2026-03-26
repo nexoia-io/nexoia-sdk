@@ -25,18 +25,42 @@ register_client("openai", OpenAIClient)
 
 
 class _ChatCompletions:
-    @staticmethod
-    def create(*, model: str, messages: list[dict[str, str]], **kwargs: Any):
-        provider, _, mname = model.partition("/") if "/" in model else ("openai", "", model)
-        ClientCls = get_client(provider)
-        client = ClientCls()
-        prompt = "\n".join(msg["content"] for msg in messages)
+    def create(self, *, model: str, messages: list[dict], **kwargs):
+        provider = kwargs.pop("provider", "openai")
+
+        client_cls = get_client(provider)
+        client = client_cls()
+
+        prompt_parts: list[str] = []
+        for msg in messages:
+            content = msg.get("content")
+            if isinstance(content, str):
+                prompt_parts.append(content)
+
+        prompt = "\n".join(prompt_parts)
+
+        resp = client.generate(prompt, model=model, **kwargs)
+
+        usage_ns = None
+        if resp.usage is not None:
+            usage_ns = SimpleNamespace(
+                prompt_tokens=resp.usage.input_tokens,
+                completion_tokens=resp.usage.output_tokens,
+                total_tokens=resp.usage.total_tokens,
+            )
+
         return SimpleNamespace(
+            id=resp.response_id,
+            model=resp.model,
+            created=resp.created,
+            usage=usage_ns,
             choices=[
                 SimpleNamespace(
+                    finish_reason=resp.finish_reason,
                     message=SimpleNamespace(
-                        content=client.generate_text(prompt, model=mname, **kwargs)
-                    )
+                        content=resp.text,
+                        tool_calls=list(resp.tool_calls),
+                    ),
                 )
             ],
         )

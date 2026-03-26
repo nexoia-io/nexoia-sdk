@@ -1,6 +1,8 @@
 # tests/test_patcher.py
 """Ensure patch_openai aliases correctly with fake SDK present."""
 
+from __future__ import annotations
+
 import importlib
 import sys
 import types
@@ -15,4 +17,5 @@ def test_patcher_alias(monkeypatch):
 
     compat = patch_openai()
     mod = importlib.import_module("openai")
+
     assert mod is compat

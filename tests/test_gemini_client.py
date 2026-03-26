@@ -11,6 +11,7 @@ def test_compat_gemini_chat_completion(monkeypatch):
 
     from nexoia.clients.gemini_client import GeminiClient
     from nexoia.compat import gemini
+    from nexoia.types import LLMResponse
 
     def fake_init(self, *args: Any, **kwargs: Any) -> None:
         self.api_key = "dummy"
@@ -20,22 +21,29 @@ def test_compat_gemini_chat_completion(monkeypatch):
 
     called: dict[str, Any] = {}
 
-    def fake_generate_text(
+    def fake_generate(
         self,
         prompt: str,
         *,
         model: str,
         **kw: Any,
-    ) -> str:
+    ) -> LLMResponse:
         called["prompt"] = prompt
         called["model"] = model
         called["extra"] = kw
-        return "pong-gemini"
+        return LLMResponse(
+            text="pong-gemini",
+            provider="gemini",
+            model=model,
+            finish_reason="stop",
+            response_id="gem_123",
+            created=1234567890,
+        )
 
     monkeypatch.setattr(
         GeminiClient,
-        "generate_text",
-        fake_generate_text,
+        "generate",
+        fake_generate,
         raising=True,
     )
 
@@ -72,5 +80,5 @@ def test_compat_gemini_invalid_message_shape():
     with pytest.raises(ValueError):
         gemini.chat.completions.create(
             model="gemini-1.5-flash",
-            messages=[{"role": "user"}],  # falta content
+            messages=[{"role": "user"}],
         )

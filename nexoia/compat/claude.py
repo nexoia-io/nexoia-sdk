@@ -36,10 +36,21 @@ class _ChatCompletions:
     def create(*, model: str, messages: Any, **kwargs: Any):
         msgs = _ensure_messages(messages)
         prompt = _extract_prompt(msgs)
-        client = ClaudeClient()
-        text = client.generate_text(prompt, model=model, **kwargs)
-        return SimpleNamespace(choices=[SimpleNamespace(message=SimpleNamespace(content=text))])
 
+        client = ClaudeClient()
+        resp = client.generate(prompt, model=model, **kwargs)
+
+        return SimpleNamespace(
+            id=resp.response_id,
+            model=resp.model,
+            created=resp.created,
+            choices=[
+                SimpleNamespace(
+                    message=SimpleNamespace(content=resp.text),
+                    finish_reason=resp.finish_reason,
+                )
+            ],
+        )
 
 class _Chat:
     completions = _ChatCompletions()
