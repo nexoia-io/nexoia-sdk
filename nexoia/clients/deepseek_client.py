@@ -10,6 +10,7 @@ from typing import Any
 import httpx
 
 from ..exceptions import APIError
+from ..types import LLMResponse, TokenUsage
 from .base import BaseLLMClient, ModelInfo
 
 _DEEPSEEK_DEFAULT_ENDPOINT = "https://api.deepseek.com/v1"
@@ -48,15 +49,8 @@ class DeepSeekClient(BaseLLMClient):
 
     # ------------------------------- LLM methods ----------------------------
 
-    def generate_text(
-        self,
-        prompt: str,
-        *,
-        model: str = "deepseek-chat",
-        max_tokens: int = 50,
-        **kwargs: Any,
-    ) -> str:  # type: ignore[override]
-        payload: dict[str, Any] = {
+    def generate(self, prompt: str, *, model: str = "deepseek-chat", max_tokens: int = 50, **kwargs: Any,) -> LLMResponse:
+        payload = {
             "model": model,
             "messages": [{"role": "user", "content": prompt}],
             "max_tokens": max_tokens,
@@ -67,9 +61,6 @@ class DeepSeekClient(BaseLLMClient):
 
         try:
             response = self._client.post(url, json=payload)
-
-            # Prefer raise_for_status() when available (real httpx.Response),
-            # but keep compatibility with minimal fakes in tests.
             rf = getattr(response, "raise_for_status", None)
             if callable(rf):
                 try:
@@ -77,8 +68,8 @@ class DeepSeekClient(BaseLLMClient):
                 except httpx.HTTPStatusError as exc:
                     raise APIError(
                         provider="deepseek",
-                        status=exc.response.status_code,
-                        body=exc.response.text,
+                        status=getattr(response, "status_code", 0),
+                        body=getattr(response, "text", ""),
                     ) from exc
             else:
                 if response.status_code != 200:
@@ -87,25 +78,40 @@ class DeepSeekClient(BaseLLMClient):
                         status=response.status_code,
                         body=response.text,
                     )
-
             data = response.json()
-
         except httpx.HTTPError as exc:
-            # Transport-level error (DNS, timeout, connection reset, etc.)
-            raise APIError(
-                provider="deepseek",
-                status=0,
-                body=str(exc),
-            ) from exc
+            raise APIError(provider="deepseek", status=0, body=str(exc)) from exc
         except ValueError as exc:
-            # JSON decode error
             raise APIError(
                 provider="deepseek",
                 status=getattr(response, "status_code", 0),
                 body=getattr(response, "text", "")[:1000],
             ) from exc
 
-        return self._extract_text_from_response(data)
+        choices = data.get("choices") or []
+        first = choices[0] if choices else {}
+        message = first.get("message") or {}
+
+        usage_data = data.get("usage") or {}
+        
+        usage = TokenUsage(
+            input_tokens=usage_data.get("prompt_tokens"),
+            output_tokens=usage_data.get("completion_tokens"),
+            total_tokens=usage_data.get("total_tokens"),
+            raw=usage_data or None,
+        ) if usage_data else None
+
+        return LLMResponse(
+            text=message.get("content") or "",
+            provider="deepseek",
+            model=data.get("model") or model,
+            usage=usage,
+            finish_reason=first.get("finish_reason"),
+            response_id=data.get("id"),
+            created=data.get("created"),
+            tool_calls=tuple(message.get("tool_calls") or ()),
+            raw=data,
+        )
 
     def _extract_text_from_response(self, data: dict[str, Any]) -> str:
         """

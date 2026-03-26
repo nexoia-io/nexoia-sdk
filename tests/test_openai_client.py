@@ -1,5 +1,5 @@
 # tests/test_openai_client.py
-"""Tests for OpenAIClient with monkey‑patched SDK (no real dependency)."""
+"""Tests for OpenAIClient with monkey-patched SDK (no real dependency)."""
 
 from __future__ import annotations
 
@@ -15,7 +15,13 @@ class _FakeChat:
         self.completions = SimpleNamespace(create=self._create)
 
     def _create(self, **_):
-        return SimpleNamespace(choices=[SimpleNamespace(message=SimpleNamespace(content="pong"))])
+        return SimpleNamespace(
+            choices=[
+                SimpleNamespace(
+                    message=SimpleNamespace(content="pong"),
+                )
+            ]
+        )
 
 
 class _FakeOpenAI:
@@ -31,16 +37,17 @@ def _patch_openai(monkeypatch):
     fake_module.OpenAI = _FakeOpenAI  # type: ignore[attr-defined]
     monkeypatch.setitem(sys.modules, "openai", fake_module)
     yield
-    # cleanup handled automatically by monkeypatch fixture
 
 
-def test_openai_client_generate_text():
-    # Import after the patch so it sees the fake SDK
+def test_openai_client_generate():
     from nexoia.clients.openai_client import OpenAIClient
+    from nexoia.types import LLMResponse
 
     client = OpenAIClient(api_key="key")
-    txt = client.generate_text("ping")
-    assert txt == "pong"
-    client = OpenAIClient(api_key="key")
-    txt = client.generate_text("ping")
-    assert txt == "pong"
+    out = client.generate("ping")
+
+    assert isinstance(out, LLMResponse)
+    assert out.text == "pong"
+    assert out.provider == "openai"
+    assert out.model == "gpt-3.5-turbo"
+    assert out.finish_reason is None

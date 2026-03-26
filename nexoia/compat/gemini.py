@@ -38,14 +38,18 @@ class _ChatCompletions:
         prompt = _extract_prompt(msgs)
 
         client = GeminiClient()
-        text = client.generate_text(prompt, model=model, **kwargs)
+        resp = client.generate(prompt, model=model, **kwargs)
 
         return SimpleNamespace(
+            id=resp.response_id,
+            model=resp.model,
+            created=resp.created,
             choices=[
                 SimpleNamespace(
-                    message=SimpleNamespace(content=text)
+                    message=SimpleNamespace(content=resp.text),
+                    finish_reason=resp.finish_reason,
                 )
-            ]
+            ],
         )
 
 

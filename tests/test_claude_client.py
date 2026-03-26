@@ -22,7 +22,6 @@ def _patch_httpx(monkeypatch):
             self.text = text
 
         def raise_for_status(self):
-            # Mimic httpx.Response.raise_for_status()
             if self.status_code >= 400:
                 raise httpx.HTTPStatusError(
                     "HTTP error",
@@ -39,7 +38,6 @@ def _patch_httpx(monkeypatch):
             self.last_json = None
 
         def post(self, url, json=None, **kwargs):
-            # Guardamos para poder asertar el payload
             self.last_url = url
             self.last_json = json
             return _FakeResp()
@@ -48,15 +46,21 @@ def _patch_httpx(monkeypatch):
     yield
 
 
-def test_claude_generate_text_basic():
-    # Importar después del patch de httpx
+def test_claude_generate_basic():
     from nexoia.clients.claude_client import ClaudeClient
+    from nexoia.types import LLMResponse
 
     client = ClaudeClient(api_key="token")
-    out = client.generate_text("hola", model="claude-sonnet-4-5", max_tokens=123)
+    out = client.generate("hola", model="claude-sonnet-4-5", max_tokens=123)
 
-    assert isinstance(out, str)
-    assert "claude" in out.lower() or "respuesta" in out.lower()
+    assert isinstance(out, LLMResponse)
+    assert isinstance(out.text, str)
+    assert "claude" in out.text.lower() or "respuesta" in out.text.lower()
+    assert out.provider == "anthropic"
+    assert out.model is not None
+    assert isinstance(out.content_blocks, tuple)
+    assert len(out.content_blocks) == 1
+    assert out.content_blocks[0]["type"] == "text"
 
 
 def test_claude_uses_messages_payload(monkeypatch):
@@ -93,12 +97,15 @@ def test_claude_uses_messages_payload(monkeypatch):
     monkeypatch.setattr(httpx, "Client", _FakeClient)
 
     from nexoia.clients.claude_client import ClaudeClient
+    from nexoia.types import LLMResponse
 
     client = ClaudeClient(api_key="token", endpoint="https://api.anthropic.com")
     prompt = "Hola Claude"
-    out = client.generate_text(prompt, model="claude-sonnet-4-5", max_tokens=42)
+    out = client.generate(prompt, model="claude-sonnet-4-5", max_tokens=42)
 
-    assert out == "algo"
+    assert isinstance(out, LLMResponse)
+    assert out.text == "algo"
+    assert out.provider == "anthropic"
 
     assert captured["url"].endswith("/v1/messages")
     body = captured["json"]
@@ -116,7 +123,6 @@ def test_claude_raises_on_http_error(monkeypatch):
         text = "boom"
 
         def raise_for_status(self):
-            # Simulate httpx raising on non-2xx status
             raise httpx.HTTPStatusError(
                 "boom",
                 request=httpx.Request("POST", "https://api.anthropic.com/v1/messages"),
@@ -140,4 +146,4 @@ def test_claude_raises_on_http_error(monkeypatch):
     client = ClaudeClient(api_key="token")
 
     with pytest.raises(APIError):
-        client.generate_text("hola")
+        client.generate("hola")

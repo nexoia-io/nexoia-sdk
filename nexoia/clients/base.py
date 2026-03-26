@@ -22,7 +22,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from ..config import get_api_key
-
+from ..types import LLMResponse
 
 @dataclass(slots=True, frozen=True)
 class ModelInfo:
@@ -74,12 +74,8 @@ class BaseLLMClient(ABC):
     # ------------------------------------------------------------------
 
     @abstractmethod
-    def generate_text(self, prompt: str, **kwargs: Any) -> str:
-        """Generate a text completion for *prompt*.
-
-        Subclasses must make the appropriate HTTP call and return the resulting
-        string or raise :class:`nexoia.exceptions.APIError`.
-        """
+    def generate(self, prompt: str, **kwargs: Any) -> LLMResponse:
+        """Generate a normalized response object."""
 
     @abstractmethod
     def get_model_info(self) -> ModelInfo:

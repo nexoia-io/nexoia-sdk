@@ -10,6 +10,7 @@ from typing import Any
 import httpx
 
 from ..exceptions import APIError
+from ..types import LLMResponse, TokenUsage
 from .base import BaseLLMClient, ModelInfo
 
 _ANTHROPIC_DEFAULT_ENDPOINT = "https://api.anthropic.com"
@@ -46,14 +47,7 @@ class ClaudeClient(BaseLLMClient):
         if getattr(self, "_client", None) is not None:
             self._client.close()
 
-    def generate_text(
-        self,
-        prompt: str,
-        *,
-        model: str = "claude-sonnet-4-6",
-        max_tokens: int = 512,
-        **kwargs: Any,
-    ) -> str:  # type: ignore[override]
+    def generate(self, prompt: str, *, model: str = "claude-sonnet-4-6", max_tokens: int = 512, **kwargs: Any,) -> LLMResponse:  
         payload: dict[str, Any] = {
             "model": model,
             "max_tokens": max_tokens,
@@ -89,7 +83,57 @@ class ClaudeClient(BaseLLMClient):
                 body=getattr(response, "text", "")[:1000],
             ) from exc
 
-        return self._extract_text_from_response(data)
+        content = data.get("content") or []
+
+        text_parts: list[str] = []
+        content_blocks: list[dict[str, Any]] = []
+        tool_calls: list[dict[str, Any]] = []
+
+        for block in content:
+            if not isinstance(block, dict):
+                continue
+
+            content_blocks.append(block)
+
+            block_type = block.get("type")
+
+            if block_type == "text":
+                text_value = block.get("text")
+                if isinstance(text_value, str):
+                    text_parts.append(text_value)
+
+            if block_type == "tool_use":
+                tool_calls.append(block)
+
+        usage_data = data.get("usage") or {}
+        usage = None
+        if usage_data:
+            input_tokens = usage_data.get("input_tokens")
+            output_tokens = usage_data.get("output_tokens")
+
+            total_tokens = None
+            if input_tokens is not None or output_tokens is not None:
+                total_tokens = (input_tokens or 0) + (output_tokens or 0)
+
+            usage = TokenUsage(
+                input_tokens=input_tokens,
+                output_tokens=output_tokens,
+                total_tokens=total_tokens,
+                raw=usage_data,
+            )
+
+        return LLMResponse(
+            text="\n".join(text_parts).strip(),
+            provider="anthropic",
+            model=data.get("model") or model,
+            usage=usage,
+            finish_reason=data.get("stop_reason"),
+            response_id=data.get("id"),
+            created=None,
+            content_blocks=tuple(content_blocks),
+            tool_calls=tuple(tool_calls),
+            raw=data,
+        )
 
     def _extract_text_from_response(self, data: dict[str, Any]) -> str:
         """
